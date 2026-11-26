@@ -223,7 +223,7 @@ details.cats > summary{padding:12px 16px;min-height:48px;display:flex;align-item
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button id="connectExcelBtn" class="btn btn-primary" type="button" hidden>Connect Excel File</button>
       <button id="importBtn" class="btn btn-ghost" type="button" hidden>Import Excel</button>
-      <input id="importFile" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+      <input id="importFile" type="file" hidden>
       <button id="exportBtn" class="btn btn-ghost" type="button">Download Excel</button>
     </div>
   </header>
@@ -448,7 +448,7 @@ details.cats > summary{padding:12px 16px;min-height:48px;display:flex;align-item
   </details>
 
   <p class="foot" id="storageNote"></p>
-  <p class="foot" id="verNote">Property Desk · version 9</p>
+  <p class="foot" id="verNote">Property Desk · version 10</p>
 </div>
 <div id="toast" class="toast" role="status" hidden></div>
 
@@ -1633,7 +1633,7 @@ showRoute();
 })();
 
 /* ---------- installable app ---------- */
-const APP_VERSION = '9.0';
+const APP_VERSION = '10.0';
 (function installable(){
   const standalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
   const help = $('installHelp');
