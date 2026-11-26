@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Ghar Register",
-  "short_name": "Ghar Register",
+  "name": "Property Desk",
+  "short_name": "Property Desk",
   "description": "House listing register for property dealers",
   "start_url": "./",
   "scope": "./",

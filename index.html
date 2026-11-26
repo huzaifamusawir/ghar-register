@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Ghar Register</title>
+<title>Property Desk</title>
 <meta name="description" content="House listing register for property dealers">
 <meta name="theme-color" content="#f3f5f4" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1613" media="(prefers-color-scheme: dark)">
@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Ghar Register">
+<meta name="apple-mobile-web-app-title" content="Property Desk">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
@@ -217,7 +217,7 @@ details.cats > summary{padding:12px 16px;min-height:48px;display:flex;align-item
 <div class="app">
   <header class="top">
     <div>
-      <h1>Ghar Register</h1>
+      <h1>Property Desk</h1>
       <p class="sub" id="countLine">House listings</p>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -418,7 +418,7 @@ details.cats > summary{padding:12px 16px;min-height:48px;display:flex;align-item
   <details class="cats" id="installHelp">
     <summary>Install this app on your phone or computer</summary>
     <div class="cats-body">
-      <p>Install Ghar Register once. After that it opens with one tap from your home screen, like any other app, and it also works without internet.</p>
+      <p>Install Property Desk once. After that it opens with one tap from your home screen, like any other app, and it also works without internet.</p>
       <button id="installBtn" class="btn btn-primary" type="button" hidden>Install app</button>
       <div>
         <p class="strong" style="margin:0 0 6px">Android (Chrome)</p>
@@ -440,7 +440,7 @@ details.cats > summary{padding:12px 16px;min-height:48px;display:flex;align-item
         <p class="strong" style="margin:0 0 6px">Computer (Chrome or Edge)</p>
         <ol class="install-steps">
           <li>Click the install icon at the right end of the address bar, or open the browser menu.</li>
-          <li>Choose <b>Install Ghar Register</b>.</li>
+          <li>Choose <b>Install Property Desk</b>.</li>
         </ol>
       </div>
       <p class="install-note">Your houses are saved on this phone or computer only. Colleagues have their own separate lists. Use <b>Download Excel</b> now and then to keep a backup.</p>
@@ -448,7 +448,7 @@ details.cats > summary{padding:12px 16px;min-height:48px;display:flex;align-item
   </details>
 
   <p class="foot" id="storageNote"></p>
-  <p class="foot" id="verNote">Ghar Register · version 8</p>
+  <p class="foot" id="verNote">Property Desk · version 9</p>
 </div>
 <div id="toast" class="toast" role="status" hidden></div>
 
@@ -1172,7 +1172,7 @@ async function connectionReport(){
   if (XL.handle){ try { perm = await XL.handle.queryPermission({mode: 'readwrite'}); } catch (e) { perm = 'error (' + e.name + ')'; } }
   const page = location.protocol + '//' + (location.host || '') + '/…/' + decodeURIComponent((location.pathname || '').split('/').pop() || '');
   return [
-    'Ghar Register - connection check',
+    'Property Desk - connection check',
     'Time: ' + new Date().toString().slice(0, 33),
     'Page: ' + page,
     'Browser: ' + (navigator.userAgent.match(/(Edg|Chrome|Firefox|Safari)\/[\d.]+/g) || [navigator.userAgent.slice(0, 60)]).join(' '),
@@ -1633,14 +1633,14 @@ showRoute();
 })();
 
 /* ---------- installable app ---------- */
-const APP_VERSION = '8.0';
+const APP_VERSION = '9.0';
 (function installable(){
   const standalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
   const help = $('installHelp');
   if (standalone()) help.hidden = true;
   let deferred = null;
   window.addEventListener('beforeinstallprompt', ev => { ev.preventDefault(); deferred = ev; $('installBtn').hidden = false; });
-  window.addEventListener('appinstalled', () => { deferred = null; $('installBtn').hidden = true; help.hidden = true; toast('Ghar Register is installed.'); });
+  window.addEventListener('appinstalled', () => { deferred = null; $('installBtn').hidden = true; help.hidden = true; toast('Property Desk is installed.'); });
   $('installBtn').addEventListener('click', async () => {
     if (!deferred) return;
     try { deferred.prompt(); await deferred.userChoice; } catch (e) {}
