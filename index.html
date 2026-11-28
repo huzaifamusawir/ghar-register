@@ -275,6 +275,10 @@ details.cats > summary{padding:12px 16px;min-height:48px;display:flex;align-item
             <label class="lbl" for="condSel">Condition</label>
             <select id="condSel"></select>
           </div>
+          <div class="f" id="ageFld" hidden>
+            <label class="lbl" for="ageIn">How many years used?</label>
+            <input id="ageIn" type="number" inputmode="decimal" min="0" max="100" step="0.5" placeholder="e.g. 3" autocomplete="off">
+          </div>
           <div class="f">
             <label class="lbl" for="designSel">Design</label>
             <select id="designSel"></select>
@@ -473,7 +477,7 @@ details.cats > summary{padding:12px 16px;min-height:48px;display:flex;align-item
   </details>
 
   <p class="foot" id="storageNote"></p>
-  <p class="foot" id="verNote">Property Desk · version 12 · <button id="updateBtn" class="btn btn-small" type="button">Update app</button></p>
+  <p class="foot" id="verNote">Property Desk · version 13 · <button id="updateBtn" class="btn btn-small" type="button">Update app</button></p>
 </div>
 <div id="toast" class="toast" role="status" hidden></div>
 
@@ -483,6 +487,8 @@ const clone = o => JSON.parse(JSON.stringify(o));
 const FILE_NAME = '9 Town Houses.xlsx';
 const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 const COND = {new: 'Brand New', used: 'Used'};
+const ageText = e => (e.age == null || !isFinite(e.age)) ? '' : trimNum(e.age) + (Number(e.age) === 1 ? ' year' : ' years');
+const condText = e => !e.cond ? '' : ((COND[e.cond] || e.cond) + (e.cond === 'used' && ageText(e) ? ' (' + ageText(e) + ')' : ''));
 const CTYPES = ['Owner', 'Dealer', 'Builder', 'Watchman', 'Manager'];
 const COMM = {full: 'Full commission', half: 'Half commission'};
 const ACC = [
@@ -598,7 +604,7 @@ function toggleProp(list, p){
 
 function hayOf(e){
   return norm([
-    'house ' + (e.houseNo || ''), e.phase || '', dateText(e), sizeText(e), e.cond ? COND[e.cond] || e.cond : '', e.design || '', accText(e),
+    'house ' + (e.houseNo || ''), e.phase || '', dateText(e), sizeText(e), condText(e), e.design || '', accText(e),
     (e.props || []).join(' '), e.ctype || '', e.name || '', e.phone || '', e.notes || '', e.comm ? COMM[e.comm] || e.comm : ''
   ].join(' '));
 }
@@ -624,7 +630,7 @@ function matches(e, f){
 
 function excelRow(e){
   return [
-    dateText(e), e.phase || '', e.block || '', e.houseNo || '', e.cond ? COND[e.cond] || e.cond : '', e.design || '', sizeText(e), accText(e),
+    dateText(e), e.phase || '', e.block || '', e.houseNo || '', condText(e), e.design || '', sizeText(e), accText(e),
     (e.props || []).join('; '), e.ctype || '', e.name || '', e.phone || '', demandText(e),
     [e.comm ? COMM[e.comm] || e.comm : '', e.notes || ''].filter(Boolean).join('; ')
   ];
@@ -932,13 +938,14 @@ function parseHouses(rows){
     const unit = !um || /^m/i.test(um) ? 'marla' : (/^k/i.test(um) ? 'kanal' : um);
     const dm = /\d+(?:\.\d+)?/.exec(get('demand').replace(/,/g, ''));
     const cRaw = get('cond'), c = cRaw.toLowerCase();
+    const agm = /^used\b[\s\-\u2013,:(]*(\d+(?:\.\d+)?)\s*(?:years?|yrs?|yr|y|saal|sal)?\s*\)?$/i.exec(cRaw.trim());
     const ct = get('type'), ctype = CTYPES.find(x => x.toLowerCase() === ct.toLowerCase()) || ct || null;
     let notes = get('notes'), comm = null;
     const cm = /^(full|half) commission\s*(?:;\s*|$)/i.exec(notes);
     if (cm){ comm = cm[1].toLowerCase(); notes = notes.slice(cm[0].length).trim(); }
     const pa = parseAcc(get('acc')), ds = get('design');
     out.push(normDoc(id, {
-      date: parseDateCell(get('date')), phase, block, houseNo, cond: /brand|^new$/.test(c) ? 'new' : (c === 'used' ? 'used' : (cRaw || null)),
+      date: parseDateCell(get('date')), phase, block, houseNo, cond: /brand|^new$/.test(c) ? 'new' : (c === 'used' || agm ? 'used' : (cRaw || null)), age: agm ? Number(agm[1]) : null,
       design: ds ? same(DS, ds) : null,
       size: sm ? Number(sm[1]) : null, unit,
       acc: pa.acc, accRaw: pa.accRaw, props: get('props').split(/[;,]+/).map(p => p.trim()).filter(Boolean),
@@ -998,8 +1005,8 @@ function setXl(state, msg){
   else if (state === 'busy'){ text = msg || 'Working with Excel…'; }
   else if (state === 'ready' && !entries.length){ text = 'Connected to ' + name + (XL.size != null ? ' (' + sizeLabel(XL.size) + ')' : '') + ', but it has 0 houses. ' + (XL.diag ? XL.diag + ' ' : '') + 'If your houses are in a different Excel file, click “Change Excel File” and choose that file.'; kind = 'warn'; }
   else if (state === 'ready'){ text = 'Connected to ' + name + (XL.size != null ? ' (' + sizeLabel(XL.size) + ')' : '') + ' — ' + entries.length + ' houses' + (XL.last ? ', updated ' + clock(XL.last) : '') + '. Every save, edit and remove updates it.'; kind = 'ok'; }
-  else if (state === 'perm' && XL.fresh){ text = (msg || 'File chosen.') + ' Now click “Allow Editing” and choose Allow in Chrome.'; kind = 'warn'; }
-  else if (state === 'perm'){ text = (msg || name + ' was used last time.') + ' Click “Reconnect Excel” to allow editing it again. If that does not work, click Disconnect and choose the file again.'; kind = 'warn'; }
+  else if (state === 'perm' && XL.fresh){ text = (msg || 'File chosen.') + ' Now click “Allow Editing”. In the Chrome box choose “Allow on every visit”, so you do not have to do this again.'; kind = 'warn'; }
+  else if (state === 'perm'){ text = (msg || name + ' was used last time.') + ' Tap anywhere on this page, or click “Reconnect Excel”, and in the Chrome box choose “Allow on every visit”. If that does not work, click Disconnect and choose the file again.'; kind = 'warn'; }
   else if (state === 'blocked'){ text = msg; kind = 'error'; }
   else { text = 'Excel is not connected. Houses are saved on this device only. Click “Connect Excel File” and choose your existing Excel file (for example 9 Town Houses.xlsx).'; kind = 'warn'; }
   bar.className = 'banner ' + kind; bar.hidden = false;
@@ -1102,16 +1109,36 @@ async function connectViaOpen(){
   XL.handle = handle; XL.fresh = true;
   setXl('perm', 'File chosen: ' + handle.name + '.');
 }
-async function reconnectExcel(){
+async function reconnectExcel(auto){
   const hdl = XL.handle;
   if (!hdl) return connectExcel();
-  let p;
-  try { p = await hdl.requestPermission({mode: 'readwrite'}); }
-  catch (err){ forgetHandle(xlFriendly(err) + detail(err) + ' Click “Connect Excel File” and choose the file again.'); return; }
-  if (p !== 'granted'){ forgetHandle('Chrome did not allow editing the saved file. Click “Connect Excel File”, choose the file again and allow editing.'); return; }
-  const fresh = XL.fresh; XL.fresh = false;
-  await attachHandle(hdl, !fresh);
+  if (XL.asking) return;
+  XL.asking = true;
+  try {
+    let p;
+    try { p = await hdl.requestPermission({mode: 'readwrite'}); }
+    catch (err){
+      if (auto === true){ setXl('perm'); return; }
+      forgetHandle(xlFriendly(err) + detail(err) + ' Click “Connect Excel File” and choose the file again.'); return;
+    }
+    if (p !== 'granted'){
+      if (auto === true){ setXl('perm'); return; }   /* the box was closed: keep the saved file, ask again on the button */
+      forgetHandle('Chrome did not allow editing the saved file. Click “Connect Excel File”, choose the file again and allow editing.'); return;
+    }
+    const fresh = XL.fresh; XL.fresh = false;
+    await attachHandle(hdl, !fresh);
+  } finally { XL.asking = false; }
 }
+/* When the app is reopened, the first tap anywhere asks Chrome to allow the saved Excel file again (Chrome only asks after a tap). */
+(function autoReconnect(){
+  const go = ev => {
+    if (XL.state !== 'perm' || XL.fresh || !XL.handle) return;
+    if (ev && ev.target && ev.target.closest && ev.target.closest('#connectExcelBtn')) return;
+    document.removeEventListener('pointerdown', go, true);
+    reconnectExcel(true);
+  };
+  document.addEventListener('pointerdown', go, true);
+})();
 async function disconnectExcel(){
   if (!confirm('Disconnect from the Excel file?\n\nYour houses stay on this device and the Excel file is left as it is. You can connect again any time.')) return;
   XL.handle = null; XL.fresh = false;
@@ -1119,7 +1146,7 @@ async function disconnectExcel(){
   setBanner(''); setXl('none');
 }
 function onExcelBtn(){
-  if (XL.state === 'perm') reconnectExcel();
+  if (XL.state === 'perm') reconnectExcel(false);
   else if (XL.state === 'blocked') writeConnectedExcel();
   else connectViaOpen();
 }
@@ -1424,7 +1451,7 @@ function collect(){
   const acc = {}; ACC.forEach(a => { acc[a.k] = normAcc($('acc-' + a.k).value); });
   return {
     date: $('dateIn').value || todayStr(), phase: getVal('phaseSel') || null, block: getVal('blockSel'), houseNo: $('houseNo').value.trim().replace(/\s+/g, ''),
-    cond: getVal('condSel') || null, design: getVal('designSel') || null,
+    cond: getVal('condSel') || null, age: getVal('condSel') === 'used' ? posNum('ageIn') : null, design: getVal('designSel') || null,
     size, unit: size == null ? null : (getVal('unitSel') || 'marla'),
     acc, accRaw: $('accRaw').value.trim() || null,
     props: form.props.slice(),
@@ -1442,6 +1469,7 @@ function resetForm(keepBlock){
   ['houseNo', 'sizeIn', 'nameIn', 'phoneIn', 'demandIn', 'notesIn', 'accRaw'].forEach(id => { $(id).value = ''; setErr(id, ''); });
   ['condSel', 'ctypeSel', 'commSel', 'designSel', 'phaseSel', 'blockSel'].forEach(id => setVal(id, ''));
   setVal('unitSel', 'marla');
+  $('ageIn').value = ''; syncAge();
   ACC.forEach(a => { $('acc-' + a.k).value = ''; });
   $('accRawFld').hidden = true;
   $('propsMs').open = false;
@@ -1456,6 +1484,7 @@ function startEdit(e){
   $('houseNo').value = e.houseNo || '';
   setVal('blockSel', e.block); setVal('phaseSel', e.phase); $('dateIn').value = dateOf(e) || todayStr();
   setVal('condSel', e.cond); setVal('designSel', e.design);
+  $('ageIn').value = e.age == null ? '' : String(e.age); syncAge();
   $('sizeIn').value = e.size == null ? '' : String(e.size);
   setVal('unitSel', e.unit ? String(e.unit).toLowerCase() : 'marla');
   ACC.forEach(a => { $('acc-' + a.k).value = (e.acc && e.acc[a.k]) || ''; });
@@ -1530,7 +1559,7 @@ function houseCard(e, kind){
     (size || e.cond || e.design || dtx) ? h('div', {class: 'meta'},
       dtx ? h('span', {class: 'tag mono', text: dtx}) : null,
       size ? h('span', {class: 'tag mono', text: size}) : null,
-      e.cond ? h('span', {class: 'tag', text: COND[e.cond] || e.cond}) : null,
+      e.cond ? h('span', {class: 'tag', text: condText(e)}) : null,
       e.design ? h('span', {class: 'tag', text: e.design}) : null) : null,
     acc ? h('p', {class: 'acc-line', text: acc}) : null,
     e.props.length ? h('div', {class: 'meta'}, ...e.props.map(p => h('span', {class: 'tag', text: p}))) : null,
@@ -1692,6 +1721,12 @@ $('dupYes').addEventListener('click', () => onSave(true));
 $('dupNo').addEventListener('click', hideDup);
 ['houseNo', 'blockSel'].forEach(id => $(id).addEventListener('input', () => { setErr(id, ''); hideDup(); }));
 $('blockSel').addEventListener('change', () => { setErr('blockSel', ''); hideDup(); });
+function syncAge(){
+  const used = getVal('condSel') === 'used';
+  $('ageFld').hidden = !used;
+  if (!used) $('ageIn').value = '';
+}
+['input', 'cbchange'].forEach(ev => $('condSel').addEventListener(ev, syncAge));
 ['input', 'cbchange'].forEach(ev => $('ctypeSel').addEventListener(ev, () => { $('commFld').hidden = getVal('ctypeSel') !== 'Dealer'; }));
 $('exportBtn').addEventListener('click', onExport);
 $('connectExcelBtn').addEventListener('click', onExcelBtn);
@@ -1735,7 +1770,7 @@ showRoute();
 })();
 
 /* ---------- installable app ---------- */
-const APP_VERSION = '12.0';
+const APP_VERSION = '13.0';
 $('updateBtn').addEventListener('click', async () => {
   /* Forget the saved copy of the app (never the saved houses) and load the newest version. */
   try {
