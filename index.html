@@ -105,9 +105,15 @@ h2{margin:0;font:700 19px/1.2 var(--font-display)}
 .hint{color:var(--muted)}
 .strong{font-weight:600}
 
-textarea,input[type=text],input[type=search],input[type=number],input[type=tel],select{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:10px 12px;font-size:16px;min-width:0}
+textarea,input[type=text],input[type=search],input[type=number],input[type=tel],input[type=date],select{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:10px 12px;font-size:16px;min-width:0}
 textarea{min-height:76px;resize:vertical;line-height:1.45}
-input[type=text],input[type=search],input[type=number],input[type=tel],select{min-height:44px}
+input[type=text],input[type=search],input[type=number],input[type=tel],input[type=date],select{min-height:44px}
+input[type=date]{-webkit-appearance:none;appearance:none;text-align:left}
+.cb{position:relative;min-width:0}
+.cb .cb-in{width:100%;padding-right:34px}
+.cb-btn{position:absolute;right:0;top:0;bottom:0;width:34px;border:0;background:none;cursor:pointer;padding:0}
+.cb-btn::after{content:"";position:absolute;left:50%;top:50%;margin:-2px 0 0 -5px;border:5px solid transparent;border-top-color:var(--muted)}
+.inline .cb{flex:0 0 108px;width:108px}
 option{color:var(--fg);background:var(--surface)}
 input[aria-invalid="true"],select[aria-invalid="true"]{border-color:var(--danger)}
 
@@ -236,7 +242,6 @@ details.cats > summary{padding:12px 16px;min-height:48px;display:flex;align-item
 
   <div id="banner" class="banner" hidden></div>
   <div id="excelBar" class="banner" hidden></div>
-  <div id="xlReport" class="banner" hidden></div>
 
   <main>
     <!-- Page 1: add or edit -->
@@ -249,9 +254,12 @@ details.cats > summary{padding:12px 16px;min-height:48px;display:flex;align-item
 
         <div class="grid">
           <div class="f">
-            <label class="lbl" for="houseNo">House No.</label>
-            <input id="houseNo" type="text" maxlength="24" autocomplete="off" placeholder="e.g. 1369/34">
-            <span class="err" id="err-houseNo" role="alert"></span>
+            <label class="lbl" for="dateIn">Date</label>
+            <input id="dateIn" type="date">
+          </div>
+          <div class="f">
+            <label class="lbl" for="phaseSel">Phase</label>
+            <select id="phaseSel"></select>
           </div>
           <div class="f">
             <label class="lbl" for="blockSel">Block</label>
@@ -259,12 +267,17 @@ details.cats > summary{padding:12px 16px;min-height:48px;display:flex;align-item
             <span class="err" id="err-blockSel" role="alert"></span>
           </div>
           <div class="f">
+            <label class="lbl" for="houseNo">House No.</label>
+            <input id="houseNo" type="text" maxlength="24" autocomplete="off" placeholder="e.g. 1369/34">
+            <span class="err" id="err-houseNo" role="alert"></span>
+          </div>
+          <div class="f">
             <label class="lbl" for="condSel">Condition</label>
-            <select id="condSel">
-              <option value="">Select condition</option>
-              <option value="new">Brand New</option>
-              <option value="used">Used</option>
-            </select>
+            <select id="condSel"></select>
+          </div>
+          <div class="f">
+            <label class="lbl" for="designSel">Design</label>
+            <select id="designSel"></select>
           </div>
           <div class="f">
             <label class="lbl" for="sizeIn">Size</label>
@@ -293,7 +306,7 @@ details.cats > summary{padding:12px 16px;min-height:48px;display:flex;align-item
           <span class="lbl" id="propsLbl">Properties</span>
           <details class="ms" id="propsMs">
             <summary aria-labelledby="propsLbl"><span class="ms-val ph" id="propsVal">Select properties</span></summary>
-            <div class="ms-panel" id="propsPanel"></div>
+            <div class="ms-panel"><div id="propsPanel"></div><div class="add-row" style="padding:6px 4px 2px"><input id="propOwn" type="text" maxlength="40" placeholder="Write your own property" aria-label="Write your own property" autocomplete="off"><button id="propOwnBtn" class="btn" type="button">Add</button></div></div>
           </details>
         </div>
 
@@ -306,11 +319,7 @@ details.cats > summary{padding:12px 16px;min-height:48px;display:flex;align-item
             </div>
             <div class="f" id="commFld" hidden>
               <label class="lbl" for="commSel">Commission</label>
-              <select id="commSel">
-                <option value="">Not specified</option>
-                <option value="full">Full commission</option>
-                <option value="half">Half commission</option>
-              </select>
+              <select id="commSel"></select>
             </div>
             <div class="f">
               <label class="lbl" for="nameIn">Contact name</label>
@@ -341,9 +350,9 @@ details.cats > summary{padding:12px 16px;min-height:48px;display:flex;align-item
       </form>
 
       <details class="cats">
-        <summary>Edit the Block and Properties lists</summary>
+        <summary>Edit the Phase, Block, Design and Properties lists</summary>
         <div class="cats-body">
-          <p>Add a new block or property, or remove one from the dropdown. Houses already saved keep their values.</p>
+          <p>Add a new phase, block, design or property, or remove one from the dropdown. Houses already saved keep their values.</p>
           <div class="opt-group">
             <h3>Blocks</h3>
             <div id="blocksList" class="opts-wrap"></div>
@@ -358,6 +367,22 @@ details.cats > summary{padding:12px 16px;min-height:48px;display:flex;align-item
             <div class="add-row">
               <input id="newProp" type="text" maxlength="40" placeholder="e.g. Servant Quarter" aria-label="New property">
               <button id="addProp" class="btn" type="button">Add</button>
+            </div>
+          </div>
+          <div class="opt-group">
+            <h3>Phases</h3>
+            <div id="phasesList" class="opts-wrap"></div>
+            <div class="add-row">
+              <input id="newPhase" type="text" maxlength="30" placeholder="e.g. Phase 5" aria-label="New phase">
+              <button id="addPhase" class="btn" type="button">Add</button>
+            </div>
+          </div>
+          <div class="opt-group">
+            <h3>Designs</h3>
+            <div id="designsList" class="opts-wrap"></div>
+            <div class="add-row">
+              <input id="newDesign" type="text" maxlength="30" placeholder="e.g. Contemporary" aria-label="New design">
+              <button id="addDesign" class="btn" type="button">Add</button>
             </div>
           </div>
         </div>
@@ -448,7 +473,7 @@ details.cats > summary{padding:12px 16px;min-height:48px;display:flex;align-item
   </details>
 
   <p class="foot" id="storageNote"></p>
-  <p class="foot" id="verNote">Property Desk · version 10</p>
+  <p class="foot" id="verNote">Property Desk · version 11</p>
 </div>
 <div id="toast" class="toast" role="status" hidden></div>
 
@@ -468,13 +493,18 @@ const ACC = [
   {k: 'store', label: 'Storerooms', one: 'Storeroom', many: 'Storerooms'}
 ];
 const DEFAULT_OPTS = {
+  phases: ['Phase 1', 'Phase 2', 'Phase 3', 'Phase 4', 'Phase 6', 'Phase 7', 'Phase 8', 'Phase 9 Town'],
+  designs: ['Modern', 'Victorian', 'Spanish', 'Mohsin Design'],
   blocks: ['A', 'B', 'C', 'D', 'E'],
   props: ['Furnished', 'Semi Furnished', 'Facing Park', 'Corner', 'Basement', 'Double Height Lobby']
 };
 const EXCLUSIVE = [['Furnished', 'Semi Furnished']];
-const HEAD = ['Phase/Block', 'House No.', 'Brand New', 'Size', 'Accommodations', 'Properties', 'Contact Type',
+const HEAD = ['Date', 'Phase', 'Block', 'House No.', 'Condition', 'Design', 'Size', 'Accommodations', 'Properties', 'Contact Type',
   'Contact Name', 'Phone Number', 'Demand (Lacs)', 'Notes / Additional Contact'];
-const WIDTHS = [15, 14, 13, 12, 48, 30, 14, 28, 25, 16, 48];
+const WIDTHS = [13, 12, 10, 14, 14, 16, 12, 48, 30, 14, 28, 25, 16, 48];
+/* the layout this app wrote before Date, Phase and Design existed: still readable */
+const LEGACY_HEAD = ['Phase/Block', 'House No.', 'Brand New', 'Size', 'Accommodations', 'Properties', 'Contact Type',
+  'Contact Name', 'Phone Number', 'Demand (Lacs)', 'Notes / Additional Contact'];
 const PRICE_BANDS = [
   {id: 'p1', label: '270–320 Lacs', test: d => d >= 270 && d <= 320},
   {id: 'p2', label: '320–350 Lacs', test: d => d > 320 && d <= 350},
@@ -484,8 +514,33 @@ const PRICE_BANDS = [
 
 const norm = s => String(s).toLowerCase().replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
 const trimNum = n => String(Number(Number(n).toFixed(2)));
-const sizeText = e => e.size == null ? '' : trimNum(e.size) + ' ' + (e.unit === 'kanal' ? 'Kanal' : 'Marla');
-const marlaOf = e => e.size == null ? null : (e.unit === 'kanal' ? e.size * 20 : e.size);
+const unitName = u => !u || String(u).toLowerCase() === 'marla' ? 'Marla' : String(u).toLowerCase() === 'kanal' ? 'Kanal' : String(u);
+const sizeText = e => e.size == null ? '' : trimNum(e.size) + ' ' + unitName(e.unit);
+const pad2 = n => String(n).padStart(2, '0');
+const dayStr = d => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+const todayStr = () => dayStr(new Date());
+function dateOf(e){
+  if (e.date && /^\d{4}-\d{2}-\d{2}$/.test(e.date)) return e.date;
+  if (e.date === undefined && e.at){ const d = new Date(e.at); if (!isNaN(d)) return dayStr(d); }
+  return '';
+}
+const dateText = e => { const s = dateOf(e); return s ? s.slice(8, 10) + '-' + s.slice(5, 7) + '-' + s.slice(0, 4) : ''; };
+/* 13-08-2026, 2026-08-13 or an Excel date number -> 2026-08-13 */
+function parseDateCell(v){
+  const s = String(v == null ? '' : v).trim();
+  if (!s) return null;
+  const ok = (y, m, d) => (m >= 1 && m <= 12 && d >= 1 && d <= 31) ? y + '-' + pad2(m) + '-' + pad2(d) : null;
+  let m = /^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2}|\d{4})$/.exec(s);
+  if (m){ let y = +m[3]; if (y < 100) y += 2000; return ok(y, +m[2], +m[1]); }
+  m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(s);
+  if (m) return ok(+m[1], +m[2], +m[3]);
+  if (/^\d{5}(\.\d+)?$/.test(s)){
+    const n = Math.floor(parseFloat(s));
+    if (n > 20000 && n < 80000){ const d = new Date(Date.UTC(1899, 11, 30) + n * 86400000); return ok(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()); }
+  }
+  return null;
+}
+const marlaOf = e => { if (e.size == null) return null; const u = unitName(e.unit); return u === 'Kanal' ? e.size * 20 : u === 'Marla' ? e.size : null; };
 const demandText = e => e.demand == null ? '' : trimNum(e.demand) + ' lakhs';
 
 function accText(e){
@@ -499,8 +554,9 @@ function normAcc(v){
 }
 
 const houseNorm = s => String(s == null ? '' : s).trim().replace(/\s+/g, '').toUpperCase();
-function houseId(block, no){
-  return (String(block).trim().toUpperCase() + '_' + houseNorm(no)).replace(/\//g, '~').replace(/[^A-Za-z0-9_\-.~:@+]/g, '-');
+function houseId(block, no, phase){
+  const p = String(phase == null ? '' : phase).trim().toUpperCase().replace(/\s+/g, '');
+  return ((p ? p + '__' : '') + String(block).trim().toUpperCase() + '_' + houseNorm(no)).replace(/\//g, '~').replace(/[^A-Za-z0-9_\-.~:@+]/g, '-');
 }
 // 1368 < 1369 < 1369/1 < 1369/34 < 1370; text-only numbers go last.
 function cmpHouse(a, b){
@@ -516,9 +572,11 @@ function cmpHouse(a, b){
   return 0;
 }
 function sortEntries(list, blocks){
+  const phases = PH;
+  const prank = p => { if (!p) return phases.length + 1; const i = phases.indexOf(p); return i < 0 ? phases.length : i; };
   const rank = b => { const i = blocks.indexOf(b); return i < 0 ? blocks.length : i; };
   return list.slice().sort((a, b) =>
-    rank(a.block) - rank(b.block) || String(a.block || '').localeCompare(String(b.block || '')) || cmpHouse(a.houseNo, b.houseNo));
+    prank(a.phase) - prank(b.phase) || rank(a.block) - rank(b.block) || String(a.block || '').localeCompare(String(b.block || '')) || cmpHouse(a.houseNo, b.houseNo));
 }
 
 function normPhones(s){
@@ -540,8 +598,8 @@ function toggleProp(list, p){
 
 function hayOf(e){
   return norm([
-    'house ' + (e.houseNo || ''), sizeText(e), e.cond ? COND[e.cond] || '' : '', accText(e),
-    (e.props || []).join(' '), e.ctype || '', e.name || '', e.phone || '', e.notes || '', e.comm ? COMM[e.comm] || '' : ''
+    'house ' + (e.houseNo || ''), e.phase || '', dateText(e), sizeText(e), e.cond ? COND[e.cond] || e.cond : '', e.design || '', accText(e),
+    (e.props || []).join(' '), e.ctype || '', e.name || '', e.phone || '', e.notes || '', e.comm ? COMM[e.comm] || e.comm : ''
   ].join(' '));
 }
 function matches(e, f){
@@ -566,9 +624,9 @@ function matches(e, f){
 
 function excelRow(e){
   return [
-    e.block || '', e.houseNo || '', e.cond ? COND[e.cond] || '' : '', sizeText(e), accText(e),
+    dateText(e), e.phase || '', e.block || '', e.houseNo || '', e.cond ? COND[e.cond] || e.cond : '', e.design || '', sizeText(e), accText(e),
     (e.props || []).join('; '), e.ctype || '', e.name || '', e.phone || '', demandText(e),
-    [e.comm ? COMM[e.comm] || '' : '', e.notes || ''].filter(Boolean).join('; ')
+    [e.comm ? COMM[e.comm] || e.comm : '', e.notes || ''].filter(Boolean).join('; ')
   ];
 }
 
@@ -587,7 +645,7 @@ function sheetXml(head, rows, widths){
   x += '<sheetFormatPr defaultRowHeight="15"/>';
   x += '<cols>' + widths.map((w, i) => '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>').join('') + '</cols>';
   x += '<sheetData><row r="1" ht="30" customHeight="1">' + head.map((h, c) => cell(1, c, h, 1)).join('') + '</row>';
-  rows.forEach((r, i) => { x += '<row r="' + (i + 2) + '">' + r.map((v, c) => cell(i + 2, c, v, c < 3 ? 3 : 2)).join('') + '</row>'; });
+  rows.forEach((r, i) => { x += '<row r="' + (i + 2) + '">' + r.map((v, c) => cell(i + 2, c, v, c < 6 ? 3 : 2)).join('') + '</row>'; });
   x += '</sheetData><autoFilter ref="A1:' + last + n + '"/>';
   x += '<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/></worksheet>';
   return x;
@@ -621,7 +679,7 @@ function buildXlsx(JSZipCtor, head, rows, widths, outType){
 const PAGE = 40;
 const ROUTES = ['entry', 'search', 'remove'];
 const LS_E = 'gharRegister.v3.entries', LS_O = 'gharRegister.v3.opts';
-let entries = [], opts = clone(DEFAULT_OPTS), mode = 'loading', DB = null, DL = null, BK = [], PK = [];
+let entries = [], opts = clone(DEFAULT_OPTS), mode = 'loading', DB = null, DL = null, BK = [], PK = [], PH = [], DS = [], CK = [], CT = [], CM = [];
 let route = 'entry', editingId = null, saving = false, loaded = false, dupId = null;
 let sf = {q: '', block: '', cond: '', prop: '', band: '', big: false}, limit = PAGE;
 let confirmRm = null, lastRemoved = null, toastT = null, optsQueue = Promise.resolve(), propsKey = '';
@@ -674,13 +732,22 @@ function copyText(t){
 }
 
 function refreshDerived(){
-  const eb = [], ep = [];
+  const eb = [], ep = [], eph = [], eds = [], eck = [], ect = [], ecm = [];
+  const add = (v, known, out) => { if (v && !known.includes(v) && !out.includes(v)) out.push(v); };
   entries.forEach(e => {
-    if (e.block && !opts.blocks.includes(e.block) && !eb.includes(e.block)) eb.push(e.block);
-    e.props.forEach(p => { if (!opts.props.includes(p) && !ep.includes(p)) ep.push(p); });
+    add(e.block, opts.blocks, eb);
+    e.props.forEach(p => add(p, opts.props, ep));
+    add(e.phase, opts.phases, eph);
+    add(e.design, opts.designs, eds);
+    add(e.cond, Object.keys(COND), eck);
+    add(e.ctype, CTYPES, ect);
+    add(e.comm, Object.keys(COMM), ecm);
   });
   BK = opts.blocks.concat(eb.sort());
   PK = opts.props.concat(ep.sort());
+  PH = opts.phases.concat(eph).sort((a, b) => a.localeCompare(b, undefined, {numeric: true}));
+  DS = opts.designs.concat(eds.sort());
+  CK = eck.sort(); CT = ect.sort(); CM = ecm.sort();
 }
 const blockColor = b => { const i = BK.indexOf(b); return i < 0 ? 'var(--c8)' : 'var(--c' + ((i % 7) + 1) + ')'; };
 const dot = b => h('i', {class: 'dot', css: {'--dot': blockColor(b)}});
@@ -820,7 +887,7 @@ function parseAcc(text){
 }
 /* turn a sheet into houses: find the header row, then read rows until the first blank row */
 const hnorm = v => String(v == null ? '' : v).trim().toLowerCase().replace(/\s+/g, ' ');
-const H_BLOCK = ['phase/block', 'block', 'phase', 'block no', 'block no.'];
+const H_BLOCK = ['phase/block', 'block', 'block no', 'block no.'];
 const H_NO = ['house no.', 'house no', 'house number', 'house #', 'house'];
 function parseHouses(rows){
   const blank = r => !r || r.every(v => String(v == null ? '' : v).trim() === '');
@@ -834,7 +901,8 @@ function parseHouses(rows){
   const hs = heads.map(hnorm);
   const find = names => hs.findIndex(v => names.includes(v));
   const ix = {
-    block: find(H_BLOCK), no: find(H_NO), cond: find(['brand new', 'condition']),
+    date: find(['date']), phase: find(['phase']), design: find(['design']),
+    block: find(H_BLOCK), no: find(H_NO), cond: find(['condition', 'brand new']),
     size: find(['size', 'marla', 'area', 'plot size']), acc: find(['accommodations', 'accommodation']),
     props: find(['properties', 'property']), type: find(['contact type', 'type']),
     name: find(['contact name', 'name', 'owner']), phone: find(['phone number', 'phone', 'mobile', 'contact', 'contact no', 'contact number']),
@@ -847,24 +915,32 @@ function parseHouses(rows){
   for (; i < rows.length && !blank(rows[i]); i++){
     const r = rows[i];
     const get = k => ix[k] < 0 ? '' : String(r[ix[k]] == null ? '' : r[ix[k]]).trim();
-    let block = get('block'); const bm = /^(?:phase\s*\d+\s*[-,]?\s*)?block\s*[-:]?\s*([a-z0-9]+)$/i.exec(block);
+    let block = get('block'), phase = get('phase');
+    const bm = /^(?:phase\s*\d+\s*[-,]?\s*)?block\s*[-:]?\s*([a-z0-9]+)$/i.exec(block);
+    const pm = !phase && /^(phase\s*\d+\w*(?:\s+town)?)\s*[-,]?\s*block\s*[-:]?\s*([a-z0-9]+)$/i.exec(block);
+    if (pm) phase = pm[1].replace(/\s+/g, ' ');
     block = (bm ? bm[1] : block).toUpperCase();
+    const same = (list, v) => list.find(x => x.toLowerCase() === v.toLowerCase()) || v;
+    phase = phase ? same(PH, phase) : null;
     const houseNo = get('no');
     if (!block || !houseNo){ skipped++; continue; }
-    const id = houseId(block, houseNo);
+    const id = houseId(block, houseNo, phase);
     if (seen.has(id)){ dups++; continue; }
     seen.add(id);
     const sz = get('size'), sm = /(\d+(?:\.\d+)?)/.exec(sz);
+    const um = sm ? sz.slice(sm.index + sm[0].length).trim() : '';
+    const unit = !um || /^m/i.test(um) ? 'marla' : (/^k/i.test(um) ? 'kanal' : um);
     const dm = /\d+(?:\.\d+)?/.exec(get('demand').replace(/,/g, ''));
-    const c = get('cond').toLowerCase();
+    const cRaw = get('cond'), c = cRaw.toLowerCase();
     const ct = get('type'), ctype = CTYPES.find(x => x.toLowerCase() === ct.toLowerCase()) || ct || null;
     let notes = get('notes'), comm = null;
     const cm = /^(full|half) commission\s*(?:;\s*|$)/i.exec(notes);
     if (cm){ comm = cm[1].toLowerCase(); notes = notes.slice(cm[0].length).trim(); }
-    const pa = parseAcc(get('acc'));
+    const pa = parseAcc(get('acc')), ds = get('design');
     out.push(normDoc(id, {
-      block, houseNo, cond: /brand|^new$/.test(c) ? 'new' : (/used/.test(c) ? 'used' : null),
-      size: sm ? Number(sm[1]) : null, unit: /kanal/i.test(sz) ? 'kanal' : 'marla',
+      date: parseDateCell(get('date')), phase, block, houseNo, cond: /brand|^new$/.test(c) ? 'new' : (c === 'used' ? 'used' : (cRaw || null)),
+      design: ds ? same(DS, ds) : null,
+      size: sm ? Number(sm[1]) : null, unit,
       acc: pa.acc, accRaw: pa.accRaw, props: get('props').split(/[;,]+/).map(p => p.trim()).filter(Boolean),
       ctype, comm, name: get('name') || null, phone: get('phone') || null,
       demand: dm ? Number(dm[0]) : null, notes: notes || null, at: Date.now()
@@ -873,7 +949,7 @@ function parseHouses(rows){
   const rowsBelow = i - start;
   let extraRows = 0;
   for (; i < rows.length; i++) if (!blank(rows[i])) extraRows++;
-  const exactHead = HEAD.every((hd, k) => heads[k] === hd) && hi === 0;
+  const exactHead = (HEAD.every((hd, k) => heads[k] === hd) || LEGACY_HEAD.every((hd, k) => heads[k] === hd)) && hi === 0;
   return {ok: true, entries: out, skipped, dups, extraRows, exactHead, hi, rowsBelow};
 }
 /* look at every sheet and use the one with the most houses */
@@ -930,7 +1006,6 @@ function setXl(state, msg){
   const kids = [h('span', {text}), h('span', {class: 'sp'})];
   if (state === 'none' && CAN_SAVE) kids.push(h('button', {class: 'btn btn-small', type: 'button', onclick: connectExcel, text: 'Create new Excel file'}));
   if (XL.handle && state !== 'busy') kids.push(h('button', {class: 'btn btn-small', type: 'button', onclick: disconnectExcel, text: 'Disconnect'}));
-  kids.push(h('button', {class: 'btn btn-small', type: 'button', onclick: showCheck, text: 'Connection check'}));
   bar.replaceChildren(...kids);
 }
 const excelNote = () => XL.handle && XL.state === 'blocked' ? ' — but Excel was NOT updated (see the red message above).' : '';
@@ -968,17 +1043,16 @@ async function attachHandle(handle, isRestore){
   setXl('busy', 'Reading ' + handle.name + '…');
   try {
     const file = await handle.getFile();
-    let found = null, converted = false, backedUp = false;
+    let found = null, converted = false;
     if (file.size > 0){
       const x = await readXlsx(await file.arrayBuffer());
       found = parseBook(x);
-      if (!found.ok) throw userErr('Nothing was changed. This file has no house table (a header row with “Phase/Block” and “House No.”).' + (found.tried && found.tried.length ? ' Sheets checked: ' + found.tried.join('; ') + '.' : '') + ' Choose another file.');
+      if (!found.ok) throw userErr('Nothing was changed. This file has no house table (a header row with “Block” and “House No.”).' + (found.tried && found.tried.length ? ' Sheets checked: ' + found.tried.join('; ') + '.' : '') + ' Choose another file.');
       converted = !found.exactHead || found.extraRows > 0 || x.sheetCount > 1;
       if (converted){
         const what = [x.sheetCount > 1 ? (x.sheetCount - 1) + ' other sheet(s)' : '', found.extraRows ? found.extraRows + ' extra rows below the house list' : ''].filter(Boolean).join(' and ');
-        const ok = confirm('This Excel file has more than the plain house list' + (what ? ' (' + what + ')' : '') + '.\n\nIf you connect it, the app will rewrite the file with ONLY the house list, in the standard layout. Everything else in this file will be removed, but a backup copy of your original file is saved in your Downloads folder first.\n\nTip: press Cancel and use “Create new Excel file” to make a separate file, so your original stays untouched.\n\nOK = connect and rewrite this file\nCancel = go back');
+        const ok = confirm('This Excel file has more than the plain house list' + (what ? ' (' + what + ')' : '') + '.\n\nIf you connect it, the app will rewrite the file with ONLY the house list, in the standard layout. Everything else in this file will be removed.\n\nTip: press Cancel and use “Create new Excel file” to make a separate file, so your original stays untouched.\n\nOK = connect and rewrite this file\nCancel = go back');
         if (!ok){ undo(''); return; }
-        backedUp = saveBackup(file);
       }
     }
     const cache = entries.slice(), flagged = lsGet(LS_NEEDS) === '1', synced = lsGet(LS_SYNCED) === '1';
@@ -1004,22 +1078,13 @@ async function attachHandle(handle, isRestore){
     if (needWrite){ lsSet(LS_NEEDS, '1'); setPendFromDiff(fileList, merged); ok = await writeConnectedExcel(); }
     else { pend = {}; savePend(); lsSet(LS_NEEDS, null); lsSet(LS_SYNCED, '1'); XL.last = new Date(); setXl('ready'); }
     const extra = found && (found.skipped || found.dups) ? ' (' + (found.skipped + found.dups) + ' unusable or repeated rows were ignored)' : '';
-    toast((ok ? 'Excel connected: ' + merged.length + ' houses.' : 'Excel connected, but not updated yet.') + extra + (backedUp ? ' A backup of your original file was saved in Downloads.' : '') + (XL.persisted ? '' : ' Next time you open the app, connect the file again.'));
+    toast((ok ? 'Excel connected: ' + merged.length + ' houses.' : 'Excel connected, but not updated yet.') + extra + (XL.persisted ? '' : ' Next time you open the app, connect the file again.'));
   } catch (err){
     console.error('Excel connect failed', err);
     undo(xlFriendly(err) + detail(err));
   }
 }
-function saveBackup(file){
-  try {
-    const a = h('a', {href: URL.createObjectURL(file), download: file.name.replace(/\.xlsx$/i, '') + ' (backup).xlsx'});
-    document.body.append(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-    return true;
-  } catch (e) { console.warn('Could not save a backup copy', e); return false; }
-}
 function forgetHandle(text){
-  XL.lastErr = text.slice(0, 300);
   XL.handle = null; XL.fresh = false;
   clearExcelHandle().catch(() => {});
   setBanner(text, 'error'); setXl('none');
@@ -1031,8 +1096,7 @@ async function connectViaOpen(){
   try { [handle] = await window.showOpenFilePicker({multiple: false, id: 'gharExcel', types: [{description: 'Excel workbook', accept: {[XLSX_MIME]: ['.xlsx']}}]}); }
   catch (err){
     if (err && err.name === 'AbortError') return;
-    console.error(err); XL.lastErr = 'chooser: ' + err.name;
-    setBanner('Chrome would not open the file chooser. On an office computer its IT settings may block this: try Microsoft Edge, or use “Import Excel” and “Download Excel”.' + detail(err), 'error'); return;
+    console.error(err); setBanner(xlFriendly(err) + detail(err), 'error'); return;
   }
   setBanner('');
   XL.handle = handle; XL.fresh = true;
@@ -1044,12 +1108,7 @@ async function reconnectExcel(){
   let p;
   try { p = await hdl.requestPermission({mode: 'readwrite'}); }
   catch (err){ forgetHandle(xlFriendly(err) + detail(err) + ' Click “Connect Excel File” and choose the file again.'); return; }
-  if (p !== 'granted'){
-    forgetHandle(p === 'denied'
-      ? 'Chrome said NO to editing this file [permission: denied]. Usual reasons: (1) “Block” was chosen earlier in the Chrome question, or (2) the office computer’s IT settings do not allow it. To fix (1): type  chrome://settings/content/filesystem  in the address bar, find this page (file://) under “Not allowed to edit files” and remove it, then connect again. If it still fails, try Microsoft Edge. Meanwhile “Import Excel” and “Download Excel” still work.'
-      : 'The Chrome question was closed without choosing Allow [permission: ' + p + ']. Click “Connect Excel File”, choose the file again, click “Allow Editing”, and in the Chrome box choose “Edit file” / Allow.');
-    return;
-  }
+  if (p !== 'granted'){ forgetHandle('Chrome did not allow editing the saved file. Click “Connect Excel File”, choose the file again and allow editing.'); return; }
   const fresh = XL.fresh; XL.fresh = false;
   await attachHandle(hdl, !fresh);
 }
@@ -1111,7 +1170,6 @@ async function writeConnectedExcel(auto){
     console.error('Excel write failed', err);
     if (err && err.name === 'NotAllowedError') setXl('perm', xlFriendly(err).replace(/ Click.*$/, ''));
     else setXl('blocked', xlFriendly(err) + detail(err));
-    XL.lastErr = (xlFriendly(err) + detail(err)).slice(0, 300);
     if (!auto) toast('Saved on this device, but Excel was NOT updated.');
     return false;
   } finally { XL.busy = false; }
@@ -1145,7 +1203,7 @@ setInterval(() => { if (XL.state === 'blocked' && !XL.busy && document.visibilit
 async function importExcel(file){
   try {
     const f = parseBook(await readXlsx(await file.arrayBuffer()));
-    if (!f.ok) throw userErr('No house table found in “' + file.name + '” (a header row with “Phase/Block” and “House No.”).' + (f.tried && f.tried.length ? ' Sheets checked: ' + f.tried.join('; ') + '.' : ''));
+    if (!f.ok) throw userErr('No house table found in “' + file.name + '” (a header row with “Block” and “House No.”).' + (f.tried && f.tried.length ? ' Sheets checked: ' + f.tried.join('; ') + '.' : ''));
     if (!f.entries.length){ setBanner('“' + file.name + '” has no houses the app can read. ' + diagText(f), 'error'); return; }
     const have = new Map(entries.map(e => [e.id, e]));
     const changes = f.entries.filter(e => { const o = have.get(e.id); return !o || sigOf([o]) !== sigOf([e]); });
@@ -1162,49 +1220,11 @@ async function importExcel(file){
 }
 $('importBtn').addEventListener('click', () => $('importFile').click());
 $('importFile').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) importExcel(f); });
-
-/* ---- Connection check: a plain report the person can copy and send ---- */
-async function connectionReport(){
-  const yn = v => v ? 'yes' : 'NO';
-  let ls = 'works'; try { localStorage.setItem('gharRegister.v3.t', '1'); localStorage.removeItem('gharRegister.v3.t'); } catch (e) { ls = 'BLOCKED (' + e.name + ')'; }
-  let idb = 'works'; try { (await openHandleDb()).close(); } catch (e) { idb = 'BLOCKED (' + (e && e.name) + ')'; }
-  let perm = 'n/a';
-  if (XL.handle){ try { perm = await XL.handle.queryPermission({mode: 'readwrite'}); } catch (e) { perm = 'error (' + e.name + ')'; } }
-  const page = location.protocol + '//' + (location.host || '') + '/…/' + decodeURIComponent((location.pathname || '').split('/').pop() || '');
-  return [
-    'Property Desk - connection check',
-    'Time: ' + new Date().toString().slice(0, 33),
-    'Page: ' + page,
-    'Browser: ' + (navigator.userAgent.match(/(Edg|Chrome|Firefox|Safari)\/[\d.]+/g) || [navigator.userAgent.slice(0, 60)]).join(' '),
-    'Top-level page: ' + yn(window.self === window.top),
-    'Secure context: ' + yn(window.isSecureContext),
-    'Open-file chooser available: ' + yn(typeof window.showOpenFilePicker === 'function'),
-    'Save-file chooser available: ' + yn(typeof window.showSaveFilePicker === 'function'),
-    'Browser storage: ' + ls + ' | file memory (IndexedDB): ' + idb,
-    'Connection state: ' + XL.state + (XL.fresh ? ' (file just chosen)' : ''),
-    'Excel file: ' + (XL.handle ? XL.handle.name + (XL.size != null ? ' (' + sizeLabel(XL.size) + ')' : '') : 'none'),
-    'Edit permission now: ' + perm,
-    'Houses in the app: ' + entries.length + ' | waiting to be written: ' + Object.keys(pend).length,
-    'What the app read: ' + (XL.diag || '-'),
-    'Last problem: ' + (XL.lastErr || XL.msg || '-')
-  ].join('\n');
-}
-async function showCheck(){
-  const box = $('xlReport'), text = await connectionReport();
-  const ta = h('textarea', {readonly: '', rows: '17', text});
-  ta.style.cssText = 'width:100%;font:12px/1.4 ui-monospace,Consolas,monospace;padding:8px;border:1px solid #cfd8d3;border-radius:8px;background:#fff;color:#222';
-  const copy = h('button', {class: 'btn btn-small', type: 'button', text: 'Copy', onclick: async () => {
-    try { await navigator.clipboard.writeText(text); toast('Copied. Paste it in the chat.'); }
-    catch (e) { ta.focus(); ta.select(); toast('Press Ctrl+C to copy, then paste it in the chat.'); }
-  }});
-  const close = h('button', {class: 'btn btn-small', type: 'button', text: 'Close', onclick: () => { box.hidden = true; }});
-  box.className = 'banner'; box.hidden = false;
-  copy.style.marginRight = '8px'; box.replaceChildren(h('div', {text: 'Copy this report and send it to your helper:'}), ta, h('div', {css: {'margin-top': '8px'}}, copy, close));
-}
 /* ---------- storage ---------- */
 function readOpts(d){
   const ok = a => Array.isArray(a) && a.length ? a.filter(x => typeof x === 'string' && x.trim()) : null;
-  return {blocks: (d && ok(d.blocks)) || clone(DEFAULT_OPTS.blocks), props: (d && ok(d.props)) || clone(DEFAULT_OPTS.props)};
+  return {blocks: (d && ok(d.blocks)) || clone(DEFAULT_OPTS.blocks), props: (d && ok(d.props)) || clone(DEFAULT_OPTS.props),
+    phases: (d && ok(d.phases)) || clone(DEFAULT_OPTS.phases), designs: (d && ok(d.designs)) || clone(DEFAULT_OPTS.designs)};
 }
 function persistLocal(){
   try { localStorage.setItem(LS_E, JSON.stringify(entries)); localStorage.setItem(LS_O, JSON.stringify(opts)); } catch (e) {}
@@ -1234,7 +1254,7 @@ const api = {
     opts = o;
     renderAll();
     if (mode !== 'db'){ persistLocal(); return Promise.resolve(); }
-    optsQueue = optsQueue.then(() => DB.doc('settings/options').set({blocks: o.blocks, props: o.props})).catch(fail);
+    optsQueue = optsQueue.then(() => DB.doc('settings/options').set({blocks: o.blocks, props: o.props, phases: o.phases, designs: o.designs})).catch(fail);
     return optsQueue;
   }
 };
@@ -1302,25 +1322,77 @@ function renderAll(){
 }
 
 /* entry page */
+/* A dropdown you can also type in: tap the box, pick from the list or just write. */
+function closeCombo(inp){ inp._panel.hidden = true; }
+function makeCombo(id, ph, pairs){
+  const sel = $(id);
+  const inp = h('input', {type: 'text', id: id, class: 'cb-in', maxlength: '40', autocomplete: 'off', placeholder: ph,
+    role: 'combobox', 'aria-autocomplete': 'list', 'aria-label': sel.getAttribute('aria-label')});
+  const btn = h('button', {class: 'cb-btn', type: 'button', tabindex: '-1', 'aria-label': 'Show list'});
+  const panel = h('div', {class: 'ms-panel', hidden: true});
+  sel.replaceWith(h('div', {class: 'cb'}, inp, btn, panel));
+  inp._pairs = pairs || []; inp._panel = panel;
+  const draw = filter => {
+    const q = (filter || '').trim().toLowerCase();
+    const items = inp._pairs.filter(p => !q || p[1].toLowerCase().includes(q));
+    panel.replaceChildren(...items.map(p => h('div', {class: 'ms-opt', role: 'option', text: p[1], onclick: () => {
+      inp.value = p[1]; closeCombo(inp); setErr(id, ''); hideDup();
+      inp.dispatchEvent(new Event('cbchange'));
+      inp.blur();
+    }})));
+    panel.hidden = !items.length;
+  };
+  inp._draw = draw;
+  const open = () => draw('');
+  panel.addEventListener('mousedown', ev => ev.preventDefault());
+  btn.addEventListener('mousedown', ev => ev.preventDefault());
+  btn.addEventListener('click', () => { if (panel.hidden){ inp.focus(); open(); } else closeCombo(inp); });
+  inp.addEventListener('focus', open);
+  inp.addEventListener('click', () => { if (panel.hidden) open(); });
+  inp.addEventListener('input', () => draw(inp.value));
+  inp.addEventListener('blur', () => closeCombo(inp));
+  inp.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter'){ ev.preventDefault(); closeCombo(inp); }
+    else if (ev.key === 'Escape') closeCombo(inp);
+    else if (ev.key === 'ArrowDown' && panel.hidden) open();
+  });
+}
+function fillFormSel(id, pairs, placeholder){
+  const inp = $(id);
+  inp._pairs = pairs; inp.placeholder = placeholder;
+  if (!inp._panel.hidden) inp._draw(inp.value);
+}
+function getVal(id){
+  const inp = $(id), t = inp.value.trim(), l = t.toLowerCase();
+  const p = (inp._pairs || []).find(x => x[1].toLowerCase() === l || x[0].toLowerCase() === l);
+  return p ? p[0] : t;
+}
+function setVal(id, v){
+  const inp = $(id);
+  v = v == null ? '' : String(v);
+  const p = (inp._pairs || []).find(x => x[0] === v);
+  inp.value = p ? p[1] : v;
+  closeCombo(inp);
+}
 function renderEntry(){
-  const b = $('blockSel'), prev = b.value;
-  const blocks = BK.slice(); if (prev && !blocks.includes(prev)) blocks.push(prev);
-  fillSelect(b, blocks, 'Select block');
-  const ct = $('ctypeSel'), pc = ct.value;
-  ct.replaceChildren(h('option', {value: '', text: 'Select type'}), ...CTYPES.map(v => h('option', {value: v, text: v})));
-  if (pc && !CTYPES.includes(pc)) ct.append(h('option', {value: pc, text: pc}));
-  ct.value = pc;
-  $('commFld').hidden = ct.value !== 'Dealer';
+  const pairs = a => a.map(v => [v, v]);
+  fillFormSel('phaseSel', pairs(PH), 'Select or type phase');
+  fillFormSel('blockSel', pairs(BK), 'Select or type block');
+  fillFormSel('condSel', [['new', COND.new], ['used', COND.used]].concat(pairs(CK)), 'Select or type condition');
+  fillFormSel('designSel', pairs(DS), 'Select or type design');
+  fillFormSel('ctypeSel', pairs(CTYPES.concat(CT)), 'Select or type contact type');
+  fillFormSel('commSel', [['full', COMM.full], ['half', COMM.half]].concat(pairs(CM)), 'Select or type commission');
+  $('commFld').hidden = getVal('ctypeSel') !== 'Dealer';
   buildPropsPanel();
   $('formTitle').textContent = editingId ? 'Edit house' : 'Add a house';
   $('saveBtn').textContent = saving ? 'Saving…' : (editingId ? 'Update house' : 'Save house');
   $('cancelEdit').hidden = !editingId;
 }
 function buildPropsPanel(){
-  const key = PK.join('\u0001');
+  const list = PK.concat(form.props.filter(p => !PK.includes(p))), key = list.join('\u0001');
   if (key !== propsKey){
     propsKey = key;
-    $('propsPanel').replaceChildren(...PK.map(p => {
+    $('propsPanel').replaceChildren(...list.map(p => {
       const cb = h('input', {type: 'checkbox', value: p});
       cb.addEventListener('change', () => { form.props = toggleProp(form.props, p); syncProps(); });
       return h('label', {class: 'ms-opt'}, cb, p);
@@ -1348,15 +1420,15 @@ function setErr(id, msg){
   if (el){ if (msg) el.setAttribute('aria-invalid', 'true'); else el.removeAttribute('aria-invalid'); }
 }
 function collect(){
-  const size = posNum('sizeIn'), ctype = $('ctypeSel').value || null;
+  const size = posNum('sizeIn'), ctype = getVal('ctypeSel') || null;
   const acc = {}; ACC.forEach(a => { acc[a.k] = normAcc($('acc-' + a.k).value); });
   return {
-    block: $('blockSel').value, houseNo: $('houseNo').value.trim().replace(/\s+/g, ''),
-    cond: $('condSel').value || null,
-    size, unit: size == null ? null : $('unitSel').value,
+    date: $('dateIn').value || todayStr(), phase: getVal('phaseSel') || null, block: getVal('blockSel'), houseNo: $('houseNo').value.trim().replace(/\s+/g, ''),
+    cond: getVal('condSel') || null, design: getVal('designSel') || null,
+    size, unit: size == null ? null : (getVal('unitSel') || 'marla'),
     acc, accRaw: $('accRaw').value.trim() || null,
     props: form.props.slice(),
-    ctype, comm: ctype === 'Dealer' ? ($('commSel').value || null) : null,
+    ctype, comm: getVal('ctypeSel') === 'Dealer' ? (getVal('commSel') || null) : null,
     name: $('nameIn').value.trim() || null,
     phone: normPhones($('phoneIn').value) || null,
     demand: posNum('demandIn'),
@@ -1365,32 +1437,33 @@ function collect(){
 }
 function hideDup(){ dupId = null; $('dupWarn').hidden = true; }
 function resetForm(keepBlock){
-  const b = keepBlock ? $('blockSel').value : '';
+  const b = keepBlock ? getVal('blockSel') : '', ph = keepBlock ? getVal('phaseSel') : '', dt = keepBlock ? $('dateIn').value : '';
   form.props = [];
   ['houseNo', 'sizeIn', 'nameIn', 'phoneIn', 'demandIn', 'notesIn', 'accRaw'].forEach(id => { $(id).value = ''; setErr(id, ''); });
-  ['condSel', 'ctypeSel', 'commSel'].forEach(id => { $(id).value = ''; });
-  $('unitSel').value = 'marla';
+  ['condSel', 'ctypeSel', 'commSel', 'designSel', 'phaseSel', 'blockSel'].forEach(id => setVal(id, ''));
+  setVal('unitSel', 'marla');
   ACC.forEach(a => { $('acc-' + a.k).value = ''; });
   $('accRawFld').hidden = true;
   $('propsMs').open = false;
   editingId = null; hideDup(); setErr('blockSel', '');
   renderEntry();
-  $('blockSel').value = b;
+  setVal('blockSel', b); setVal('phaseSel', ph);
+  $('dateIn').value = dt || todayStr();
 }
 function startEdit(e){
   go('entry');
   form.props = e.props.slice();
   $('houseNo').value = e.houseNo || '';
-  $('blockSel').value = e.block || '';
-  $('condSel').value = e.cond || '';
+  setVal('blockSel', e.block); setVal('phaseSel', e.phase); $('dateIn').value = dateOf(e) || todayStr();
+  setVal('condSel', e.cond); setVal('designSel', e.design);
   $('sizeIn').value = e.size == null ? '' : String(e.size);
-  $('unitSel').value = e.unit === 'kanal' ? 'kanal' : 'marla';
+  setVal('unitSel', e.unit ? String(e.unit).toLowerCase() : 'marla');
   ACC.forEach(a => { $('acc-' + a.k).value = (e.acc && e.acc[a.k]) || ''; });
   $('accRaw').value = e.accRaw || '';
   $('accRawFld').hidden = !e.accRaw;
-  $('ctypeSel').value = e.ctype || '';
-  $('commFld').hidden = $('ctypeSel').value !== 'Dealer';
-  $('commSel').value = e.comm || '';
+  setVal('ctypeSel', e.ctype);
+  $('commFld').hidden = getVal('ctypeSel') !== 'Dealer';
+  setVal('commSel', e.comm);
   $('nameIn').value = e.name || '';
   $('phoneIn').value = e.phone || '';
   $('demandIn').value = e.demand == null ? '' : String(e.demand);
@@ -1409,10 +1482,10 @@ async function onSave(force){
   setErr('blockSel', d.block ? '' : 'Select a block.');
   if (!d.houseNo){ $('houseNo').focus(); return; }
   if (!d.block){ $('blockSel').focus(); return; }
-  const id = houseId(d.block, d.houseNo);
+  const id = houseId(d.block, d.houseNo, d.phase);
   if (id !== editingId && entries.some(x => x.id === id) && force !== true){
     dupId = id;
-    $('dupText').textContent = 'House ' + d.houseNo + ' in Block ' + d.block + ' is already saved.';
+    $('dupText').textContent = 'House ' + d.houseNo + ' in ' + (d.phase ? d.phase + ', ' : '') + 'Block ' + d.block + ' is already saved.';
     $('dupWarn').hidden = false;
     return;
   }
@@ -1437,7 +1510,7 @@ async function onSave(force){
 
 /* shared house card */
 function houseCard(e, kind){
-  const size = sizeText(e), dem = demandText(e), acc = accText(e);
+  const size = sizeText(e), dem = demandText(e), acc = accText(e), dtx = dateText(e);
   const phones = (e.phone || '').split(' / ').filter(Boolean);
   const hasWho = e.ctype || e.name || e.comm || phones.length;
   const actions = kind === 'remove'
@@ -1451,11 +1524,14 @@ function houseCard(e, kind){
     h('div', {class: 'item-head'},
       h('div', {class: 'item-id'},
         h('span', {class: 'item-no', text: 'House ' + (e.houseNo || '—')}),
+        e.phase ? h('span', {class: 'tag', text: e.phase}) : null,
         e.block ? h('span', {class: 'pill-static'}, dot(e.block), 'Block ' + e.block) : null),
       dem ? h('span', {class: 'item-price', text: dem}) : null),
-    (size || e.cond) ? h('div', {class: 'meta'},
+    (size || e.cond || e.design || dtx) ? h('div', {class: 'meta'},
+      dtx ? h('span', {class: 'tag mono', text: dtx}) : null,
       size ? h('span', {class: 'tag mono', text: size}) : null,
-      e.cond ? h('span', {class: 'tag', text: COND[e.cond] || e.cond}) : null) : null,
+      e.cond ? h('span', {class: 'tag', text: COND[e.cond] || e.cond}) : null,
+      e.design ? h('span', {class: 'tag', text: e.design}) : null) : null,
     acc ? h('p', {class: 'acc-line', text: acc}) : null,
     e.props.length ? h('div', {class: 'meta'}, ...e.props.map(p => h('span', {class: 'tag', text: p}))) : null,
     hasWho ? h('div', {class: 'who'},
@@ -1470,7 +1546,9 @@ function houseCard(e, kind){
 function renderSearch(){
   fillSelect($('fBlock'), BK, 'All blocks'); $('fBlock').value = BK.includes(sf.block) ? sf.block : '';
   fillSelect($('fProp'), PK, 'All properties'); $('fProp').value = PK.includes(sf.prop) ? sf.prop : '';
-  $('fCond').value = sf.cond;
+  const cs = [['new', COND.new], ['used', COND.used]].concat(CK.map(c => [c, c]));
+  $('fCond').replaceChildren(h('option', {value: '', text: 'All conditions'}), ...cs.map(c => h('option', {value: c[0], text: c[1]})));
+  $('fCond').value = cs.some(c => c[0] === sf.cond) ? sf.cond : '';
   const chips = PRICE_BANDS.map(b => ({id: b.id, label: b.label, on: sf.band === b.id, tap: () => { sf.band = sf.band === b.id ? '' : b.id; }}))
     .concat([{id: 'big', label: 'Above 5 Marla', on: sf.big, tap: () => { sf.big = !sf.big; }}]);
   $('quick').replaceChildren(...chips.map(c => h('button', {class: 'qchip', type: 'button', 'aria-pressed': String(c.on),
@@ -1512,7 +1590,7 @@ function renderRemove(){
       h('p', {class: 'strong', text: 'House ' + raw + ' exists in ' + hits.length + ' blocks.'}),
       h('p', {class: 'hint', text: 'Choose the block to continue.'}),
       h('div', {class: 'quick'}, ...hits.map(e => h('button', {class: 'qchip', type: 'button',
-        onclick: () => { $('rmBlock').value = e.block; confirmRm = null; renderRemove(); }, text: 'Block ' + e.block})))));
+        onclick: () => { $('rmBlock').value = e.block; confirmRm = null; renderRemove(); }, text: (e.phase ? e.phase + ', ' : '') + 'Block ' + e.block})))));
     return;
   }
   if (blk) hits = hits.filter(e => e.block === blk);
@@ -1525,14 +1603,14 @@ function renderRemove(){
     h('p', {class: 'strong', text: 'No house with number ' + raw + ' was found' + (blk ? ' in Block ' + blk : '') + '.'}),
     near.length ? h('div', {class: 'similar'}, h('span', {class: 'hint', text: 'Similar numbers:'}),
       ...near.map(e => h('button', {class: 'tag mono', type: 'button',
-        onclick: () => { $('rmNo').value = e.houseNo; $('rmBlock').value = e.block; renderRemove(); }, text: e.houseNo + ' (Block ' + e.block + ')'}))) : null));
+        onclick: () => { $('rmNo').value = e.houseNo; $('rmBlock').value = e.block; renderRemove(); }, text: e.houseNo + ' (' + (e.phase ? e.phase + ', ' : '') + 'Block ' + e.block + ')'}))) : null));
 }
 async function doRemove(e){
   confirmRm = null;
   try {
     await api.remove(e.id);
     lastRemoved = {id: e.id, data: clone(e)};
-    $('undoText').textContent = 'House ' + e.houseNo + ' (Block ' + e.block + ') was removed.';
+    $('undoText').textContent = 'House ' + e.houseNo + ' (' + (e.phase ? e.phase + ', ' : '') + 'Block ' + e.block + ') was removed.';
     $('undoBar').hidden = false;
     $('rmNo').value = ''; $('rmBlock').value = '';
     renderRemove();
@@ -1552,7 +1630,7 @@ function renderOpts(){
     $(id).replaceChildren(...opts[key].map(v => h('span', {class: 'opt-chip'}, v,
       h('button', {type: 'button', 'aria-label': 'Remove ' + v, text: '×', onclick: () => removeOpt(key, v)}))));
   };
-  fill('blocksList', 'blocks'); fill('propsList', 'props');
+  fill('blocksList', 'blocks'); fill('propsList', 'props'); fill('phasesList', 'phases'); fill('designsList', 'designs');
 }
 function removeOpt(key, v){
   const o = clone(opts);
@@ -1593,6 +1671,14 @@ async function onExport(){
   }
 }
 
+makeCombo('phaseSel', 'Select or type phase');
+makeCombo('blockSel', 'Select or type block');
+makeCombo('condSel', 'Select or type condition');
+makeCombo('designSel', 'Select or type design');
+makeCombo('unitSel', 'Unit', [['marla', 'Marla'], ['kanal', 'Kanal']]);
+makeCombo('ctypeSel', 'Select or type contact type');
+makeCombo('commSel', 'Select or type commission');
+
 /* ---------- wiring ---------- */
 document.querySelectorAll('.tab').forEach(a => a.addEventListener('click', ev => { ev.preventDefault(); go(a.dataset.route); }));
 window.addEventListener('hashchange', () => { const r = routeFromHash(); if (r !== route){ route = r; showRoute(); } });
@@ -1606,11 +1692,25 @@ $('dupYes').addEventListener('click', () => onSave(true));
 $('dupNo').addEventListener('click', hideDup);
 ['houseNo', 'blockSel'].forEach(id => $(id).addEventListener('input', () => { setErr(id, ''); hideDup(); }));
 $('blockSel').addEventListener('change', () => { setErr('blockSel', ''); hideDup(); });
-$('ctypeSel').addEventListener('change', () => { $('commFld').hidden = $('ctypeSel').value !== 'Dealer'; });
+['input', 'cbchange'].forEach(ev => $('ctypeSel').addEventListener(ev, () => { $('commFld').hidden = getVal('ctypeSel') !== 'Dealer'; }));
 $('exportBtn').addEventListener('click', onExport);
 $('connectExcelBtn').addEventListener('click', onExcelBtn);
 $('addBlock').addEventListener('click', () => addOpt('blocks', 'newBlock'));
 $('addProp').addEventListener('click', () => addOpt('props', 'newProp'));
+$('addPhase').addEventListener('click', () => addOpt('phases', 'newPhase'));
+$('addDesign').addEventListener('click', () => addOpt('designs', 'newDesign'));
+$('newPhase').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); addOpt('phases', 'newPhase'); } });
+$('newDesign').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); addOpt('designs', 'newDesign'); } });
+function addOwnProp(){
+  const inp = $('propOwn'), v = inp.value.trim();
+  if (!v) return;
+  const name = PK.concat(form.props).find(x => x.toLowerCase() === v.toLowerCase()) || v;
+  if (!form.props.includes(name)) form.props = toggleProp(form.props, name);
+  inp.value = '';
+  buildPropsPanel();
+}
+$('propOwnBtn').addEventListener('click', addOwnProp);
+$('propOwn').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); addOwnProp(); } });
 $('newBlock').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); addOpt('blocks', 'newBlock'); } });
 $('newProp').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); addOpt('props', 'newProp'); } });
 $('q').addEventListener('input', e => { sf.q = e.target.value; limit = PAGE; renderList(); });
@@ -1623,6 +1723,8 @@ $('rmBlock').addEventListener('change', () => { confirmRm = null; renderRemove()
 $('undoBtn').addEventListener('click', onUndo);
 
 buildAccGrid();
+setVal('unitSel', 'marla');
+$('dateIn').value = todayStr();
 route = routeFromHash();
 showRoute();
 (function boot(){
@@ -1633,7 +1735,7 @@ showRoute();
 })();
 
 /* ---------- installable app ---------- */
-const APP_VERSION = '10.0';
+const APP_VERSION = '11.0';
 (function installable(){
   const standalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
   const help = $('installHelp');
